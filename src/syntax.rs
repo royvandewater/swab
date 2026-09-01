@@ -12,7 +12,12 @@ pub struct Syntax {
 }
 
 const fn quoted(open: &'static str, close: &'static str, multiline: bool) -> StringRule {
-    StringRule { open, close, escape: true, multiline }
+    StringRule {
+        open,
+        close,
+        escape: true,
+        multiline,
+    }
 }
 
 const C_STRINGS: &[StringRule] = &[
@@ -137,7 +142,10 @@ mod tests {
 
     #[test]
     fn ruby_has_begin_end_block_comments() {
-        assert_eq!(Syntax::for_path("a.rb").unwrap().block, [("=begin", "=end")]);
+        assert_eq!(
+            Syntax::for_path("a.rb").unwrap().block,
+            [("=begin", "=end")]
+        );
     }
 
     #[test]

@@ -26,7 +26,10 @@ pub fn strip(source: &str, syntax: &Syntax, added: &HashSet<usize>) -> Stripped 
         text.replace_range(range.clone(), "");
     }
 
-    Stripped { text, removed: cuts.len() }
+    Stripped {
+        text,
+        removed: cuts.len(),
+    }
 }
 
 fn cut(
@@ -65,7 +68,10 @@ impl LineIndex {
     fn new(source: &str) -> Self {
         let mut starts = vec![0];
         starts.extend(source.match_indices('\n').map(|(i, _)| i + 1));
-        LineIndex { starts, length: source.len() }
+        LineIndex {
+            starts,
+            length: source.len(),
+        }
     }
 
     fn line_of(&self, offset: usize) -> usize {
@@ -87,17 +93,28 @@ mod tests {
     use crate::syntax::Syntax;
 
     fn swab(path: &str, source: &str, added: &[usize]) -> String {
-        strip(source, Syntax::for_path(path).unwrap(), &added.iter().copied().collect()).text
+        strip(
+            source,
+            Syntax::for_path(path).unwrap(),
+            &added.iter().copied().collect(),
+        )
+        .text
     }
 
     #[test]
     fn removes_a_whole_line_comment_on_an_added_line() {
-        assert_eq!(swab("a.rs", "let x = 1;\n// noise\nlet y = 2;\n", &[2]), "let x = 1;\nlet y = 2;\n");
+        assert_eq!(
+            swab("a.rs", "let x = 1;\n// noise\nlet y = 2;\n", &[2]),
+            "let x = 1;\nlet y = 2;\n"
+        );
     }
 
     #[test]
     fn keeps_indentation_free_of_leftover_blank_lines() {
-        assert_eq!(swab("a.rs", "fn f() {\n    // noise\n}\n", &[2]), "fn f() {\n}\n");
+        assert_eq!(
+            swab("a.rs", "fn f() {\n    // noise\n}\n", &[2]),
+            "fn f() {\n}\n"
+        );
     }
 
     #[test]
@@ -107,12 +124,18 @@ mod tests {
 
     #[test]
     fn leaves_comments_on_unchanged_lines_alone() {
-        assert_eq!(swab("a.rs", "// old\nlet x = 1;\n", &[2]), "// old\nlet x = 1;\n");
+        assert_eq!(
+            swab("a.rs", "// old\nlet x = 1;\n", &[2]),
+            "// old\nlet x = 1;\n"
+        );
     }
 
     #[test]
     fn removes_a_block_comment_whose_lines_are_all_added() {
-        assert_eq!(swab("a.rs", "/* one\n   two */\nlet x = 1;\n", &[1, 2]), "let x = 1;\n");
+        assert_eq!(
+            swab("a.rs", "/* one\n   two */\nlet x = 1;\n", &[1, 2]),
+            "let x = 1;\n"
+        );
     }
 
     #[test]
@@ -123,7 +146,10 @@ mod tests {
 
     #[test]
     fn keeps_code_that_follows_a_block_comment_on_the_same_line() {
-        assert_eq!(swab("a.rs", "/* noise */ let x = 1;\n", &[1]), "let x = 1;\n");
+        assert_eq!(
+            swab("a.rs", "/* noise */ let x = 1;\n", &[1]),
+            "let x = 1;\n"
+        );
     }
 
     #[test]
@@ -135,12 +161,23 @@ mod tests {
     fn counts_the_comments_it_removed() {
         let source = "// a\n// b\nlet x = 1; // c\n";
         let added = [1, 2, 3].iter().copied().collect();
-        assert_eq!(strip(source, Syntax::for_path("a.rs").unwrap(), &added).removed, 3);
+        assert_eq!(
+            strip(source, Syntax::for_path("a.rs").unwrap(), &added).removed,
+            3
+        );
     }
 
     #[test]
     fn leaves_a_file_with_no_added_comments_untouched() {
         let source = "let x = 1;\n";
-        assert_eq!(strip(source, Syntax::for_path("a.rs").unwrap(), &[1].into_iter().collect()).removed, 0);
+        assert_eq!(
+            strip(
+                source,
+                Syntax::for_path("a.rs").unwrap(),
+                &[1].into_iter().collect()
+            )
+            .removed,
+            0
+        );
     }
 }

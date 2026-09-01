@@ -78,12 +78,18 @@ mod tests {
 
     #[test]
     fn line_comment_stops_at_newline() {
-        assert_eq!(spans("a.rs", "// one\ncode\n// two\n"), ["// one", "// two"]);
+        assert_eq!(
+            spans("a.rs", "// one\ncode\n// two\n"),
+            ["// one", "// two"]
+        );
     }
 
     #[test]
     fn finds_a_block_comment_spanning_lines() {
-        assert_eq!(spans("a.rs", "a\n/* one\n   two */\nb\n"), ["/* one\n   two */"]);
+        assert_eq!(
+            spans("a.rs", "a\n/* one\n   two */\nb\n"),
+            ["/* one\n   two */"]
+        );
     }
 
     #[test]
@@ -93,17 +99,26 @@ mod tests {
 
     #[test]
     fn ignores_comment_markers_inside_strings() {
-        assert_eq!(spans("a.rs", "let s = \"// not a comment\";\n"), Vec::<String>::new());
+        assert_eq!(
+            spans("a.rs", "let s = \"// not a comment\";\n"),
+            Vec::<String>::new()
+        );
     }
 
     #[test]
     fn ignores_comment_markers_inside_block_delimited_strings() {
-        assert_eq!(spans("a.rs", "let s = \"/* nope */\";\n"), Vec::<String>::new());
+        assert_eq!(
+            spans("a.rs", "let s = \"/* nope */\";\n"),
+            Vec::<String>::new()
+        );
     }
 
     #[test]
     fn escaped_quotes_do_not_end_a_string() {
-        assert_eq!(spans("a.rs", "let s = \"a\\\" // b\"; // real\n"), ["// real"]);
+        assert_eq!(
+            spans("a.rs", "let s = \"a\\\" // b\"; // real\n"),
+            ["// real"]
+        );
     }
 
     #[test]
@@ -113,17 +128,26 @@ mod tests {
 
     #[test]
     fn triple_quoted_python_strings_hide_hashes() {
-        assert_eq!(spans("a.py", "s = \"\"\"# not\n# me\"\"\"\n# yes\n"), ["# yes"]);
+        assert_eq!(
+            spans("a.py", "s = \"\"\"# not\n# me\"\"\"\n# yes\n"),
+            ["# yes"]
+        );
     }
 
     #[test]
     fn ruby_begin_end_blocks_are_comments() {
-        assert_eq!(spans("a.rb", "a\n=begin\ndoc\n=end\nb\n"), ["=begin\ndoc\n=end"]);
+        assert_eq!(
+            spans("a.rb", "a\n=begin\ndoc\n=end\nb\n"),
+            ["=begin\ndoc\n=end"]
+        );
     }
 
     #[test]
     fn html_comments_span_lines() {
-        assert_eq!(spans("a.html", "<p>x</p>\n<!-- hi\nthere -->\n"), ["<!-- hi\nthere -->"]);
+        assert_eq!(
+            spans("a.html", "<p>x</p>\n<!-- hi\nthere -->\n"),
+            ["<!-- hi\nthere -->"]
+        );
     }
 
     #[test]

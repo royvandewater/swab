@@ -10,7 +10,9 @@ pub fn added_lines(diff: &str) -> AddedLines {
         if let Some(rest) = line.strip_prefix("+++ ") {
             current = target_path(rest);
         } else if let Some(rest) = line.strip_prefix("@@ ") {
-            let Some(path) = current.clone() else { continue };
+            let Some(path) = current.clone() else {
+                continue;
+            };
             let (start, count) = added_range(rest);
             if count > 0 {
                 files.entry(path).or_default().extend(start..start + count);
@@ -30,7 +32,10 @@ fn target_path(rest: &str) -> Option<String> {
 }
 
 fn added_range(rest: &str) -> (usize, usize) {
-    let Some(added) = rest.split_whitespace().find_map(|part| part.strip_prefix('+')) else {
+    let Some(added) = rest
+        .split_whitespace()
+        .find_map(|part| part.strip_prefix('+'))
+    else {
         return (0, 0);
     };
     let (start, count) = match added.split_once(',') {
@@ -48,7 +53,11 @@ mod tests {
     use super::*;
 
     fn lines(diff: &str, path: &str) -> Vec<usize> {
-        let mut found: Vec<usize> = added_lines(diff).remove(path).unwrap_or_default().into_iter().collect();
+        let mut found: Vec<usize> = added_lines(diff)
+            .remove(path)
+            .unwrap_or_default()
+            .into_iter()
+            .collect();
         found.sort();
         found
     }
