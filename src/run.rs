@@ -1,3 +1,4 @@
+use std::path::PathBuf;
 use std::process::Command;
 
 use crate::git::added_lines;
@@ -14,11 +15,17 @@ pub struct Swabbed {
     pub removed: usize,
 }
 
-pub fn run(options: &Options) -> Result<Vec<Swabbed>, String> {
+pub struct Report {
+    pub base: String,
+    pub files: Vec<Swabbed>,
+}
+
+pub fn run(options: &Options) -> Result<Report, String> {
     let base = match &options.base {
         Some(base) => base.clone(),
         None => default_base()?,
     };
+    let root = PathBuf::from(capture(&["rev-parse", "--show-toplevel"])?.trim());
     let merge_base = capture(&["merge-base", "HEAD", &base])?.trim().to_string();
     let diff = capture(&[
         "diff",
@@ -30,7 +37,7 @@ pub fn run(options: &Options) -> Result<Vec<Swabbed>, String> {
 
     let mut files = added_lines(&diff);
     for path in untracked()? {
-        let Ok(source) = std::fs::read_to_string(&path) else {
+        let Ok(source) = std::fs::read_to_string(root.join(&path)) else {
             continue;
         };
         files.insert(path, (1..=source.lines().count()).collect());
@@ -41,7 +48,8 @@ pub fn run(options: &Options) -> Result<Vec<Swabbed>, String> {
         let Some(syntax) = Syntax::for_path(&path) else {
             continue;
         };
-        let Ok(source) = std::fs::read_to_string(&path) else {
+        let full_path = root.join(&path);
+        let Ok(source) = std::fs::read_to_string(&full_path) else {
             continue;
         };
         let result = strip(&source, syntax, &added);
@@ -49,7 +57,7 @@ pub fn run(options: &Options) -> Result<Vec<Swabbed>, String> {
             continue;
         }
         if !options.dry_run {
-            std::fs::write(&path, &result.text).map_err(|e| format!("{path}: {e}"))?;
+            std::fs::write(&full_path, &result.text).map_err(|e| format!("{path}: {e}"))?;
         }
         swabbed.push(Swabbed {
             path,
@@ -58,7 +66,10 @@ pub fn run(options: &Options) -> Result<Vec<Swabbed>, String> {
     }
 
     swabbed.sort_by(|a, b| a.path.cmp(&b.path));
-    Ok(swabbed)
+    Ok(Report {
+        base,
+        files: swabbed,
+    })
 }
 
 fn untracked() -> Result<Vec<String>, String> {

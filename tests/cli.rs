@@ -102,3 +102,42 @@ fn leaves_unsupported_file_types_alone() {
 
     assert_eq!(repo.read("notes.bin"), "// looks like a comment\n");
 }
+
+#[test]
+fn works_when_run_from_a_subdirectory() {
+    let repo = Repo::new("subdir");
+    fs::create_dir_all(repo.path.join("src")).unwrap();
+    repo.write("src/new.ts", "// added noise\nexport const a = 1;\n");
+    repo.commit("work");
+
+    swab(&repo.path.join("src"), &["--base", "main"]);
+
+    assert_eq!(repo.read("src/new.ts"), "export const a = 1;\n");
+}
+
+#[test]
+fn reports_the_base_it_compared_against() {
+    let repo = Repo::new("base-report");
+    repo.write("new.ts", "export const a = 1;\n");
+    repo.commit("work");
+
+    let report = swab(&repo.path, &["--base", "main"]);
+
+    assert!(report.contains("main"), "{report}");
+}
+
+#[test]
+fn fails_loudly_when_a_changed_file_cannot_be_read() {
+    let repo = Repo::new("unreadable");
+    repo.write("new.ts", "// noise\n");
+    repo.commit("work");
+    fs::remove_file(repo.path.join("new.ts")).unwrap();
+
+    let output = Command::new(env!("CARGO_BIN_EXE_swab"))
+        .args(["--base", "main"])
+        .current_dir(&repo.path)
+        .output()
+        .unwrap();
+
+    assert!(output.status.success(), "deleted files are not an error");
+}

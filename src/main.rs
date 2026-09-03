@@ -20,8 +20,8 @@ fn main() -> ExitCode {
     };
 
     match run(&options) {
-        Ok(swabbed) => {
-            for file in &swabbed {
+        Ok(report) => {
+            for file in &report.files {
                 let plural = if file.removed == 1 {
                     "comment"
                 } else {
@@ -29,8 +29,8 @@ fn main() -> ExitCode {
                 };
                 println!("{}: removed {} {plural}", file.path, file.removed);
             }
-            if swabbed.is_empty() {
-                println!("no comments introduced by this branch");
+            if report.files.is_empty() {
+                println!("no comments introduced since {}", report.base);
             }
             ExitCode::SUCCESS
         }
