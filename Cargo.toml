@@ -2,5 +2,8 @@
 name = "swab"
 version = "0.1.0"
 edition = "2024"
+license = "MIT"
+description = "Removes comments introduced by the current branch"
+repository = "https://github.com/royvandewater/swab"
 
 [dependencies]
