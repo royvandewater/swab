@@ -35,3 +35,7 @@ C-family (Rust, TS/JS, Go, Java, C/C++, C#, Swift, Kotlin, Scala, PHP, Dart,
 Zig, proto), Python, shell and config formats (sh/bash/zsh/fish, YAML, TOML,
 INI, Terraform, Nix, Makefile), Ruby, HTML/XML/Vue/Svelte, CSS/SCSS/Less, and
 SQL. Files with unrecognized extensions are skipped.
+
+## License
+
+MIT
